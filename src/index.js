@@ -2,18 +2,14 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
-import reportWebVitals from './reportWebVitals';
-import { ChakraProvider } from "@chakra-ui/react"
+import reportWebVitals from './reportWebVitals'; 
 import { ToastContainer } from 'react-toastify';
-import { system } from "@chakra-ui/react/preset";
-
+ 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-  <ToastContainer/>
- <ChakraProvider value={system}> 
-    <App />
-    </ChakraProvider>
+  <ToastContainer/> 
+    <App /> 
   </React.StrictMode>
 );
 
