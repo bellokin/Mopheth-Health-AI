@@ -167,7 +167,7 @@ const [userId, setUserId] = useState(null);
               />
             </svg>
           </div>
-          <h1 className="text-xl font-semibold text-gray-800">Mophet HealthAI Diagnosis</h1>
+          <h1 className="text-xl font-semibold text-gray-800">Mopheth Health AI Pre-Diagnosis</h1>
         </div>
       </header>
 
