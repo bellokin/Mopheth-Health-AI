@@ -167,7 +167,7 @@ const [userId, setUserId] = useState(null);
               />
             </svg>
           </div>
-          <h1 className="text-xl font-semibold text-gray-800">Mophet HealthAI Diagnosis</h1>
+          <h1 className="text-xl font-semibold text-gray-800">Mopheth Health AI Pre-Diagnosis</h1>
         </div>
       </header>
 
@@ -193,7 +193,7 @@ const [userId, setUserId] = useState(null);
                   d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
                 />
               </svg>
-              <h3 className="text-lg font-medium mb-4 text-gray-800">Welcome to HealthAI</h3>
+              <h3 className="text-lg font-medium mb-4 text-gray-800">Welcome to Mopheth Health AI Pre-Diagnosis</h3>
               <p className="max-w-md mb-6">
                 Click below to start describing your symptoms and get a diagnosis.
               </p>
@@ -220,7 +220,7 @@ const [userId, setUserId] = useState(null);
                   d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
                 />
               </svg>
-              <h3 className="text-lg font-medium mb-1">Welcome to HealthAI</h3>
+              <h3 className="text-lg font-medium mb-1">Welcome to Mopheth Health AI Pre-Diagnosis</h3>
               <p className="max-w-md">
                 Describe your symptoms and I'll help diagnose your condition.
                 For example: "My throat has been sore for 3 days."
@@ -307,7 +307,7 @@ const [userId, setUserId] = useState(null);
             </button>
           </div>
           <p className="text-xs text-gray-500 mt-2 text-center">
-            HealthAI provides preliminary information only. Always consult a doctor for medical advice.
+            Mopheth Health AI Pre-Diagnosis provides preliminary information only. Always consult a doctor for medical advice.
           </p>
         </div>
       )}
