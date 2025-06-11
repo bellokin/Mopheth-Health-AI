@@ -9,7 +9,9 @@ export default function ChatInterface() {
   const [isLoading, setIsLoading] = useState(false);
   const [conversationComplete, setConversationComplete] = useState(false);
   const [responseData, setResponseData] = useState(null);
+  const [showStartButton, setShowStartButton] = useState(true);
   const messageBoxRef = useRef(null);
+const [userId, setUserId] = useState(null);
 
   // Predefined symptom options
   const symptomOptions = [
@@ -24,15 +26,20 @@ export default function ChatInterface() {
   // Load messages from localStorage on component mount
   useEffect(() => {
     const savedMessages = localStorage.getItem("chatMessages");
-    if (savedMessages) {
-      setMessages(JSON.parse(savedMessages));
-    }
+   
   }, []);
 
   // Save messages to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem("chatMessages", JSON.stringify(messages));
   }, [messages]);
+
+  useEffect(() => {
+  // Check if userId is already stored
+    // Generate random ID (simple version)
+   const  storedId = "user_" + Math.random().toString(36).substr(2, 9);
+    setUserId(storedId);
+}, []);
 
   // Scroll to bottom of messages
   useEffect(() => {
@@ -41,12 +48,8 @@ export default function ChatInterface() {
     }
   }, [messages]);
 
-  const handleSendMessage = async () => {
-    if (!input.trim()) return;
-
-    const newMessage = { role: "user", content: input };
-    setMessages((prev) => [...prev, newMessage]);
-    setInput("");
+  // Function to send messages to the API
+  const sendMessage = async (messageContent) => {
     setIsLoading(true);
 
     try {
@@ -57,8 +60,8 @@ export default function ChatInterface() {
           "Accept": "application/json",
         },
         body: JSON.stringify({
-          userId: "user123",  // Added required userId field
-          message: input      // Changed from 'content' to 'message'
+          userId: userId,
+          message: messageContent
         }),
       });
 
@@ -69,15 +72,12 @@ export default function ChatInterface() {
       const data = await response.json();
 
       if (data) {
-        // Mark conversation as complete if flagged
         if (data.conversation_complete === true) {
           setConversationComplete(true);
         }
 
-        // Store the response data
         setResponseData(data);
 
-        // Optionally append the next question if present
         if (data.next_question) {
           setMessages((prev) => [
             ...prev,
@@ -85,11 +85,9 @@ export default function ChatInterface() {
           ]);
         }
       } else {
-        // Handle completely missing or invalid response
-        const aiMessage = "No response received.";
         setMessages((prev) => [
           ...prev,
-          { role: "assistant", content: aiMessage }
+          { role: "assistant", content: "No response received." }
         ]);
       }
     } catch (error) {
@@ -105,6 +103,23 @@ export default function ChatInterface() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Handle start conversation button click
+  const handleStartConversation = async () => {
+    setShowStartButton(false);
+    setMessages((prev) => [...prev, { role: "user", content: "conversation started" }]);
+    await sendMessage("starts a conversation");
+  };
+
+  // Handle user sending a message
+  const handleSendMessage = async () => {
+    if (!input.trim()) return;
+
+    const newMessage = { role: "user", content: input };
+    setMessages((prev) => [...prev, newMessage]);
+    setInput("");
+    await sendMessage(input);
   };
 
   const handleKeyDown = (e) => {
@@ -131,7 +146,6 @@ export default function ChatInterface() {
     );
   }
 
-  // Otherwise, render the chat interface
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
       {/* Header */}
@@ -153,7 +167,7 @@ export default function ChatInterface() {
               />
             </svg>
           </div>
-          <h1 className="text-xl font-semibold text-gray-800">Mophets HealthAI Diagnosis</h1>
+          <h1 className="text-xl font-semibold text-gray-800">Mophet HealthAI Diagnosis</h1>
         </div>
       </header>
 
@@ -163,7 +177,34 @@ export default function ChatInterface() {
           ref={messageBoxRef}
           className="h-full overflow-y-auto rounded-lg bg-white shadow-sm p-4 space-y-4"
         >
-          {messages.length === 0 ? (
+          {showStartButton ? (
+            <div className="flex flex-col items-center justify-center h-full text-center text-gray-500">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-12 w-12 mb-4 text-indigo-300"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                />
+              </svg>
+              <h3 className="text-lg font-medium mb-4 text-gray-800">Welcome to HealthAI</h3>
+              <p className="max-w-md mb-6">
+                Click below to start describing your symptoms and get a diagnosis.
+              </p>
+              <button
+                onClick={handleStartConversation}
+                className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              >
+                Start Conversation
+              </button>
+            </div>
+          ) : messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center text-gray-500">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -217,57 +258,59 @@ export default function ChatInterface() {
         </div>
       </div>
 
-      {/* Input Area */}
-      <div className="max-w-4xl w-full mx-auto pb-6 px-4">
-        {/* Symptom Options */}
-        <div className="mb-4 flex flex-wrap gap-2">
-          {symptomOptions.map((symptom, index) => (
-            <button
-              key={index}
-              onClick={() => handleOptionClick(symptom)}
-              className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
-            >
-              {symptom}
-            </button>
-          ))}
-        </div>
+      {/* Input Area (hidden when start button is shown) */}
+      {!showStartButton && (
+        <div className="max-w-4xl w-full mx-auto pb-6 px-4">
+          {/* Symptom Options */}
+          <div className="mb-4 flex flex-wrap gap-2">
+            {symptomOptions.map((symptom, index) => (
+              <button
+                key={index}
+                onClick={() => handleOptionClick(symptom)}
+                className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              >
+                {symptom}
+              </button>
+            ))}
+          </div>
 
-        <div className="relative">
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Describe your symptoms..."
-            className="w-full rounded-lg border border-gray-300 shadow-sm py-3 px-4 pr-12 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
-            rows="2"
-          />
-          <button
-            onClick={handleSendMessage}
-            disabled={isLoading || !input.trim()}
-            className={`absolute right-3 bottom-3 p-2 rounded-full ${
-              isLoading || !input.trim()
-                ? "bg-gray-300 text-gray-500"
-                : "bg-indigo-600 text-white hover:bg-indigo-700"
-            } transition-colors`}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+          <div className="relative">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Describe your symptoms..."
+              className="w-full rounded-lg border border-gray-300 shadow-sm py-3 px-4 pr-12 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+              rows="2"
+            />
+            <button
+              onClick={handleSendMessage}
+              disabled={isLoading || !input.trim()}
+              className={`absolute right-3 bottom-3 p-2 rounded-full ${
+                isLoading || !input.trim()
+                  ? "bg-gray-300 text-gray-500"
+                  : "bg-indigo-600 text-white hover:bg-indigo-700"
+              } transition-colors`}
             >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 mt-2 text-center">
+            HealthAI provides preliminary information only. Always consult a doctor for medical advice.
+          </p>
         </div>
-        <p className="text-xs text-gray-500 mt-2 text-center">
-          HealthAI provides preliminary information only. Always consult a doctor for medical advice.
-        </p>
-      </div>
+      )}
     </div>
   );
 }
